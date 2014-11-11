@@ -1,0 +1,19 @@
+diff -Nuar ffmpeg-2.3.3/libavutil/mem.c ffmpeg-2.3.3-patched/libavutil/mem.c
+--- ffmpeg-2.3.3/libavutil/mem.c	2014-08-17 10:33:17.000000000 -0300
++++ ffmpeg-2.3.3-patched/libavutil/mem.c	2014-11-11 17:52:57.047893753 -0300
+@@ -50,6 +50,7 @@
+ #define posix_memalign AV_JOIN(MALLOC_PREFIX, posix_memalign)
+ #define realloc        AV_JOIN(MALLOC_PREFIX, realloc)
+ #define free           AV_JOIN(MALLOC_PREFIX, free)
++#endif /* MALLOC_PREFIX */
+ 
+ void *malloc(size_t size);
+ void *memalign(size_t align, size_t size);
+@@ -57,7 +58,6 @@
+ void *realloc(void *ptr, size_t size);
+ void  free(void *ptr);
+ 
+-#endif /* MALLOC_PREFIX */
+ 
+ #define ALIGN (HAVE_AVX ? 32 : 16)
+ 

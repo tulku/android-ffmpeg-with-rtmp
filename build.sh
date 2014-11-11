@@ -22,8 +22,8 @@ function die {
 
 #-- try to intelligently determine where the Android NDK is installed
 function find_ndk {
-  ndk_name="android-ndk-r10"
-  top_level_paths_to_search="/Users /Applications /usr"
+  ndk_name="android-ndk-r10c"
+  top_level_paths_to_search="/opt/ndk/ /Users /Applications /usr"
   found_ndk=""
   for d in $top_level_paths_to_search; do
     test -d "$d" || continue

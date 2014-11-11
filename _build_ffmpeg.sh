@@ -2,10 +2,12 @@ function build_ffmpeg {
   echo "Building ffmpeg for android ..."
 
   # download ffmpeg
-  ffmpeg_archive=${src_root}/ffmpeg-snapshot.tar.bz2
+  ffmpeg_version="ffmpeg-2.4.3"
+  ffmpeg_bundle="${ffmpeg_version}.tar.bz2"
+  ffmpeg_archive=${src_root}/${ffmpeg_bundle}
   if [ ! -f "${ffmpeg_archive}" ]; then
     test -x "$(which curl)" || die "You must install curl!"
-    curl -s http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 -o ${ffmpeg_archive} >> ${build_log} 2>&1 || \
+    curl -s http://ffmpeg.org/releases/${ffmpeg_bundle} -o ${ffmpeg_archive} >> ${build_log} 2>&1 || \
       die "Couldn't download ffmpeg sources!"
   fi
 
@@ -15,14 +17,16 @@ function build_ffmpeg {
     tar xvfj ${ffmpeg_archive} >> ${build_log} 2>&1 || die "Couldn't extract ffmpeg sources!"
   fi
 
-  cd ${src_root}/ffmpeg
+  cd ${src_root}/${ffmpeg_version}
 
   # patch the configure script to use an Android-friendly versioning scheme
   patch -u configure ${patch_root}/ffmpeg-configure.patch >> ${build_log} 2>&1 || \
     die "Couldn't patch ffmpeg configure script!"
+  patch -p1 -u < ${patch_root}/ffmpeg-malloc-prefix.patch >> ${build_log} 2>&1 || \
+    die "Couldn't patch ffmpeg mem.c!"
 
   # run the configure script
-  prefix=${src_root}/ffmpeg/android/arm
+  prefix=${src_root}/${ffmpeg_version}/android/arm
   addi_cflags="-marm"
   addi_ldflags=""
   export PKG_CONFIG_PATH="${src_root}/openssl-android:${src_root}/rtmpdump/librtmp"
@@ -42,12 +46,12 @@ function build_ffmpeg {
     --enable-librtmp \
     --enable-decoder=h264 \
     --sysroot=${SYSROOT} \
-    --extra-cflags="-Os -fpic ${addi_cflags}" \
+    --extra-cflags="-O2 -fpic ${addi_cflags}" \
     --extra-ldflags="-L${src_root}/openssl-android/libs/armeabi ${addi_ldflags}" \
     --pkg-config=$(which pkg-config) >> ${build_log} 2>&1 || die "Couldn't configure ffmpeg!"
 
   # build
-  make >> ${build_log} 2>&1 || die "Couldn't build ffmpeg!"
+  make -j8 >> ${build_log} 2>&1 || die "Couldn't build ffmpeg!"
   make install >> ${build_log} 2>&1 || die "Couldn't install ffmpeg!"
 
   # copy the versioned libraries
